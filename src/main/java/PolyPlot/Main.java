@@ -18,23 +18,31 @@ public class Main {
     public static void main(String... args) {
 
         Polynom polynom = new Polynom("0.2X^4-1.5X^3+3X^2-X-5");
+        Polynom x = new Polynom();
         int numOfValues = (int) ((MAX_VALUE - MIN_VALUE) / EPSILON);
+        double[] fxData = new double[numOfValues];
+        double[] fyData = new double[numOfValues];
         double[] xData = new double[numOfValues];
         double[] yData = new double[numOfValues];
         Polynom_able derivative = polynom.derivative();
         List<Double> extremePointsXValues = new LinkedList<>();
 
         for (int i = 0; i < numOfValues; i++) {
-            xData[i] = MIN_VALUE + i * EPSILON;
-            yData[i] = polynom.f(xData[i]);
+            fxData[i] = MIN_VALUE + i * EPSILON;
+            fyData[i] = polynom.f(fxData[i]);
             // if der.f(xData[i]) closer to 0 than previous value - replace, else add
             if (extremePointsXValues.isEmpty()) {
-                extremePointsXValues.add(xData[i]);
-            } else if (Math.abs(derivative.f(xData[i])) < Math.abs(derivative.f(extremePointsXValues.get(extremePointsXValues.size() - 1)))) {
-                extremePointsXValues.set(extremePointsXValues.size() - 1, xData[i]);
+                extremePointsXValues.add(fxData[i]);
+            } else if (Math.abs(derivative.f(fxData[i])) < Math.abs(derivative.f(extremePointsXValues.get(extremePointsXValues.size() - 1)))) {
+                extremePointsXValues.set(extremePointsXValues.size() - 1, fxData[i]);
             } else {
-                extremePointsXValues.add(xData[i]);
+                extremePointsXValues.add(fxData[i]);
             }
+        }
+        // X , Y cordinate system.
+        for (int i = 0; i < numOfValues ; i++){
+            xData[i] = MIN_VALUE + i * EPSILON;
+            yData[i] = polynom.f(xData[i]);
         }
 
         List<Double> actualExtremePointsXValues = new LinkedList<>();
@@ -48,16 +56,18 @@ public class Main {
         XYChart chart = new XYChartBuilder().title(polynom.toString()).xAxisTitle("X").yAxisTitle("Y").build();
         chart.getStyler().setDefaultSeriesRenderStyle(XYSeries.XYSeriesRenderStyle.Line);
         chart.getStyler().setLegendVisible(false);
+        chart.addSeries("x", xData, yData).setMarkerColor(Color.green);
+        chart.addSeries(" ", fxData, fyData).setMarkerColor(Color.BLUE);
 
-        chart.addSeries(" ", xData, yData).setMarkerColor(Color.BLUE);
-
-        actualExtremePointsXValues.forEach(x -> {
-            XYSeries series = chart.addSeries(String.valueOf(x),
-                    new double[]{x},
-                    new double[]{polynom.f(x)});
+        actualExtremePointsXValues.forEach(fx -> {
+            XYSeries series = chart.addSeries(String.valueOf(fx),
+                    new double[]{fx},
+                    new double[]{polynom.f(fx)});
             series.setMarkerColor(Color.RED).setMarker(SeriesMarkers.CIRCLE);
+
         });
         // find extreme points
+
 
 
 // Show it
