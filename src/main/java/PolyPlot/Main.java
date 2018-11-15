@@ -22,14 +22,19 @@ public class Main {
         int numOfValues = (int) ((MAX_VALUE - MIN_VALUE) / EPSILON);
         double[] fxData = new double[numOfValues];
         double[] fyData = new double[numOfValues];
-        double[] xData = new double[numOfValues];
-        double[] yData = new double[numOfValues];
+        double[] xxData = new double[numOfValues];
+        double[] xyData = new double[numOfValues];
         Polynom_able derivative = polynom.derivative();
         List<Double> extremePointsXValues = new LinkedList<>();
 
+        double maxYValue = Double.MIN_VALUE;
+        double minYValue = Double.MAX_VALUE;
         for (int i = 0; i < numOfValues; i++) {
             fxData[i] = MIN_VALUE + i * EPSILON;
-            fyData[i] = polynom.f(fxData[i]);
+            double y = polynom.f(fxData[i]);
+            fyData[i] = y;
+            maxYValue = Double.max(maxYValue, y);
+            minYValue = Double.min(minYValue, y);
             // if der.f(xData[i]) closer to 0 than previous value - replace, else add
             if (extremePointsXValues.isEmpty()) {
                 extremePointsXValues.add(fxData[i]);
@@ -41,8 +46,15 @@ public class Main {
         }
         // X , Y cordinate system.
         for (int i = 0; i < numOfValues ; i++){
-            xData[i] = MIN_VALUE + i * EPSILON;
-            yData[i] = polynom.f(xData[i]);
+            xxData[i] = MIN_VALUE + i * EPSILON;
+            xyData[i] = x.f(xxData[i]);
+        }
+        int numOfYValues = (int) ((maxYValue - minYValue) / EPSILON);
+        double[] yxData = new double[numOfYValues];
+        double[] yyData = new double[numOfYValues];
+        for (int i = 0; i < numOfYValues ; i++){
+            yxData[i] = 0;
+            yyData[i] = minYValue + i * EPSILON;
         }
 
         List<Double> actualExtremePointsXValues = new LinkedList<>();
@@ -53,10 +65,16 @@ public class Main {
             }
         }
 
-        XYChart chart = new XYChartBuilder().title(polynom.toString()).xAxisTitle("X").yAxisTitle("Y").build();
+        String chartName = polynom.toString() +
+                " - Area below X axis and above the function is " +
+//                area(polynom);
+                String.format("%.5g%n", area(polynom));
+
+        XYChart chart = new XYChartBuilder().title(chartName).xAxisTitle("X").yAxisTitle("Y").build();
         chart.getStyler().setDefaultSeriesRenderStyle(XYSeries.XYSeriesRenderStyle.Line);
         chart.getStyler().setLegendVisible(false);
-        chart.addSeries("x", xData, yData).setMarkerColor(Color.green);
+        chart.addSeries("x", xxData, xyData).setMarkerColor(Color.GREEN);
+        chart.addSeries("y", yxData, yyData).setMarkerColor(Color.GREEN);
         chart.addSeries(" ", fxData, fyData).setMarkerColor(Color.BLUE);
 
         actualExtremePointsXValues.forEach(fx -> {
@@ -64,14 +82,26 @@ public class Main {
                     new double[]{fx},
                     new double[]{polynom.f(fx)});
             series.setMarkerColor(Color.RED).setMarker(SeriesMarkers.CIRCLE);
-
         });
-        // find extreme points
 
-
-
-// Show it
+        // Show it
         new SwingWrapper(chart).displayChart();
+    }
+
+    private static double area(Polynom p) {
+        int rectangles = (int) ((MAX_VALUE - MIN_VALUE ) / EPSILON);
+        double x = MIN_VALUE;
+        double sum = 0;
+        for (int i = 0; i < rectangles; i++) {
+            double height = p.f(x);
+            if (height >= 0){
+                x += EPSILON;
+                continue;
+            }
+            sum += EPSILON * height;
+            x += EPSILON;
+        }
+        return sum;
     }
 }
 
